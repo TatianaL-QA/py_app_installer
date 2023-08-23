@@ -35,6 +35,8 @@ def get_latest_download_url(app_identifier='mwl'):
 
 
 def download_and_store_app(app_identifier, download_url, output_folder):
+    """Function is downloading the Android latest app using Appcenter API
+     note: in case app is needed by bundle_number, other API endpoint should be used"""
     response = requests.get(download_url)
     if response.status_code == 200:
         apk_filename = os.path.join(output_folder, f"{app_identifier}.apk")
