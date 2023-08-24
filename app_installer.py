@@ -15,6 +15,8 @@ def check_internet_connection():
         return False
 
 
+# TODO: Add ability to grab a list of downloaded apps, select one from the list and install
+#  after removing existing package
 def get_latest_download_url(app_identifier='mwl'):
     api_url_key = f"APPCENTER_{app_identifier.upper()}_URL"
     app_url = config(api_url_key)
