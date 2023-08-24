@@ -86,7 +86,7 @@ def get_app_info(package_name, app_version, release_notes):
 
 def main():
     parser = argparse.ArgumentParser(description="Install app using AppCenter API.")
-    parser.add_argument("--ml", action="store_true", help="Install ml instead of mwl")
+    parser.add_argument("--ml", action="store_true", help="Use --ml to install ML! app, --mwl is default parameter")
 
     args = parser.parse_args()
 
