@@ -1,5 +1,7 @@
 Scope:
+
 This code is intended to automate latest version of Android app installation to local mobile devices form the AppCenter.
+
 
 Prerequisites:
 - platform-tools should be installed and added to path, code is using adb.exe 
