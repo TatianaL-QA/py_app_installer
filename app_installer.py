@@ -27,19 +27,19 @@ def get_latest_download_url(app_identifier='mwl'):
         data = response.json()
         download_url = data["download_url"]
         package_name = data["bundle_identifier"]
-        app_version = data["short_version"] + ' ' + data["version"]
+        app_version = data["short_version"] + '_' + data["version"]
         release_notes = data["release_notes"]
         return download_url, package_name, app_version, release_notes
     else:
         raise Exception("Failed to retrieve download URL from AppCenter.")
 
 
-def download_and_store_app(app_identifier, download_url, output_folder):
+def download_and_store_app(app_identifier, download_url, output_folder, app_version):
     """Function is downloading the Android latest app using Appcenter API
      note: in case app is needed by bundle_number, other API endpoint should be used"""
     response = requests.get(download_url)
     if response.status_code == 200:
-        apk_filename = os.path.join(output_folder, f"{app_identifier}.apk")
+        apk_filename = os.path.join(output_folder, f"{app_identifier}_{app_version}.apk")
         with open(apk_filename, "wb") as apk_file:
             apk_file.write(response.content)
         return apk_filename
@@ -105,7 +105,7 @@ def main():
         output_folder = os.path.join(os.getcwd(), "downloads")
         os.makedirs(output_folder, exist_ok=True)
 
-        apk_path = download_and_store_app(app_identifier, download_url, output_folder)
+        apk_path = download_and_store_app(app_identifier, download_url, output_folder, app_version)
         connected_devices = get_connected_adb_devices()
 
         for device_id in connected_devices:
