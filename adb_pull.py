@@ -112,6 +112,7 @@ def pull_files_recent(device_id, local_destination_folder):
                     most_recent_creation_time = creation_time
 
     # Pull the most recently created file, if found
+
     if most_recent_file is not None:
         most_recent_file_name = os.path.basename(most_recent_file)
         local_pull_path = os.path.join(
