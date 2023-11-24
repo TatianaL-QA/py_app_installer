@@ -1,6 +1,7 @@
 import subprocess
 import os
 from datetime import datetime, timedelta
+from decouple import config
 
 
 def get_file_creation_time(device_id, file_path):
@@ -49,14 +50,14 @@ def select_device(devices):
         return devices[0]["id"]
     else:
         # Print the list of available devices and prompt the user to select one
-        print("Select a device from the list:")
+        print("List of connected devices:")
         for i, device in enumerate(devices, start=1):
-            print(f"{i}. {device['name']}")
+            print(f"{i}. {device['id']}")
 
         while True:
             try:
                 choice = int(
-                    input("Enter the number corresponding to your choice: "))
+                    input("Provide the corresponding number: "))
                 if 1 <= choice <= len(devices):
                     return devices[choice - 1]["id"]
                 else:
@@ -67,7 +68,7 @@ def select_device(devices):
 
 def pull_files_recent(device_id, local_destination_folder):
     # Formulate the adb command to list files matching the pattern on the device
-    list_command = f"adb -s {device_id} shell find /sdcard/ -type f -name 'XR*.mp4'"
+    list_command = f"adb -s {device_id} shell find /sdcard/ -type f -name '*.mp4'"
 
     # Execute the adb command and capture the output
     try:
@@ -77,6 +78,15 @@ def pull_files_recent(device_id, local_destination_folder):
         print(f"Error listing files on the device: {e}")
         return
 
+    # TODO: filenames with spaces are not pulled, fix the error!
+    '''
+        stat: '/sdcard/ScreenRecords/ScreenCapture/with': No such file or directory
+        stat: 'Logged': No such file or directory
+        stat: 'out': No such file or directory
+        stat: 'of': No such file or directory
+        stat: 'wifi': No such file or directory
+        stat: 'connections.mp4': No such file or directory
+    '''
     # Remove empty strings from the list
     file_list_info = [file_info.strip()
                       for file_info in file_list_info if file_info.strip()]
@@ -137,6 +147,6 @@ if __name__ == "__main__":
 
         # Replace 'C:\\Your\\Local\\Path' with your actual local path on the Windows machine
         # ToDO: add proper folder checker, and propose either to select folder, or create a new one
-        local_destination_folder = "e:\dest"
+        local_destination_folder = config("DESTINATION_LOCAL")
 
         pull_files_recent(selected_device_id, local_destination_folder)
