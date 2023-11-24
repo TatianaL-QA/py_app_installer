@@ -132,7 +132,7 @@ def pull_files_recent(device_id, local_destination_folder):
         print(
             f"Most recently created file '{most_recent_file_name}' pulled to '{local_pull_path}'")
     else:
-        print("No files matching the pattern found within the last 24 hours on the device.")
+        print("No files matching the pattern were found. (Date created within the last 24 hours.")
 
 
 if __name__ == "__main__":
