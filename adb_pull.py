@@ -5,13 +5,15 @@ from decouple import config
 
 
 def get_file_creation_time(device_id, file_path):
+    # Escape spaces in the file path
+    escaped_file_path = file_path.replace(" ", "\\ ")
+
     # Formulate the adb command to get the creation timestamp of the file
-    stat_command = f"adb -s {device_id} shell stat -c %Y {file_path}"
+    stat_command = f"adb -s {device_id} shell stat -c %Y {escaped_file_path}"
 
     # Execute the adb command and capture the output
     try:
-        creation_timestamp = int(subprocess.check_output(
-            stat_command, shell=True, text=True).strip())
+        creation_timestamp = int(subprocess.check_output(stat_command, shell=True, text=True).strip())
     except subprocess.CalledProcessError as e:
         print(f"Error getting file creation time: {e}")
         return None
@@ -20,8 +22,6 @@ def get_file_creation_time(device_id, file_path):
     creation_time = datetime.utcfromtimestamp(creation_timestamp)
 
     return creation_time
-
-
 def get_connected_devices():
     # Formulate the adb command to list connected devices
     devices_command = "adb devices -l"
@@ -72,24 +72,14 @@ def pull_files_recent(device_id, local_destination_folder):
 
     # Execute the adb command and capture the output
     try:
-        file_list_info = subprocess.check_output(
-            list_command, shell=True, text=True).split('\n')
+        with subprocess.Popen(list_command, shell=True, stdout=subprocess.PIPE, text=True) as process:
+            file_list_info, _ = process.communicate()
     except subprocess.CalledProcessError as e:
         print(f"Error listing files on the device: {e}")
         return
 
-    # TODO: filenames with spaces are not pulled, fix the error!
-    '''
-        stat: '/sdcard/ScreenRecords/ScreenCapture/with': No such file or directory
-        stat: 'Logged': No such file or directory
-        stat: 'out': No such file or directory
-        stat: 'of': No such file or directory
-        stat: 'wifi': No such file or directory
-        stat: 'connections.mp4': No such file or directory
-    '''
-    # Remove empty strings from the list
-    file_list_info = [file_info.strip()
-                      for file_info in file_list_info if file_info.strip()]
+    # Split the output into lines
+    file_list_info = file_list_info.strip().split('\n')
 
     if not file_list_info:
         print("No files matching the pattern found on the device.")
@@ -122,18 +112,18 @@ def pull_files_recent(device_id, local_destination_folder):
                     most_recent_creation_time = creation_time
 
     # Pull the most recently created file, if found
-
     if most_recent_file is not None:
         most_recent_file_name = os.path.basename(most_recent_file)
+        # Quote the file paths to handle spaces in file names
         local_pull_path = os.path.join(
             local_destination_folder, most_recent_file_name)
-        # Quote the file paths to handle spaces in file names
         pull_command = f'adb -s {device_id} pull "{most_recent_file}" "{local_pull_path}"'
         subprocess.run(pull_command, shell=True)
         print(
             f"Most recently created file '{most_recent_file_name}' pulled to '{local_pull_path}'")
     else:
-        print("No files matching the pattern were found. (Date created within the last 24 hours.")
+        print(
+            "No files matching the pattern were found. (Date created within the last 24 hours.")
 
 
 if __name__ == "__main__":
@@ -141,12 +131,11 @@ if __name__ == "__main__":
     devices = get_connected_devices()
 
     if not devices:
-        print("No devices found. Make sure your Android device is connected.")
+        print("No devices found. Make sure one or more Android devices were connected having proper Permissions")
     else:
-        # Select a device
         selected_device_id = select_device(devices)
 
-        # Replace 'C:\\Your\\Local\\Path' with your actual local path on the Windows machine
+        # don't forget to check path in ENV file, it should be stored locally, because used elsewhere
         # ToDO: add proper folder checker, and propose either to select folder, or create a new one
         local_destination_folder = config("DESTINATION_LOCAL")
 
