@@ -1,7 +1,12 @@
 import pandas as pd
 
 
-def data_extract(file_path, start_row=1, end_row=None, debug=False, columns=None):
+def data_extract(
+        file_path,
+        start_row=1,
+        end_row=None,
+        debug=False,
+        columns=None):
     """
     Extract specific columns and rows from a CSV file, cleaning phone numbers.
 
@@ -44,7 +49,8 @@ def data_extract(file_path, start_row=1, end_row=None, debug=False, columns=None
     data = pd.read_csv(
         file_path,
         skiprows=range(1, start_row),  # Skip rows to start at the correct row
-        nrows=None if end_row is None else end_row - start_row,  # Read up to the end_row
+        nrows=None if end_row is None else end_row -
+                                           start_row,  # Read up to the end_row
         usecols=requested_columns,  # Use the matched columns
     )
 
@@ -53,7 +59,8 @@ def data_extract(file_path, start_row=1, end_row=None, debug=False, columns=None
 
     # Clean the phone numbers if 'Phone' is among the columns
     if 'Phone' in data.columns:
-        data['Phone'] = data['Phone'].str.replace(r'\s+|\t|["]', '', regex=True)  # Remove tabs, whitespaces, and quotes
+        data['Phone'] = data['Phone'].str.replace(
+            r'\s+|\t|["]', '', regex=True)  # Remove tabs, whitespaces, and quotes
         if debug:
             print(f"Cleaned phone numbers:\n{data['Phone']}")
 
@@ -113,7 +120,14 @@ def data_to_vcf(dataframe, CNTR_CODE="+353", debug=False):
 # Example usage:
 if __name__ == "__main__":
     # Extract data
-    cleaned_data = data_extract("dirty_test_file.csv", start_row=5, end_row=8, debug=True, columns=["Name", "Phone"])
+    cleaned_data = data_extract(
+        "dirty_test_file.csv",
+        start_row=5,
+        end_row=8,
+        debug=True,
+        columns=[
+            "Name",
+            "Phone"])
     # Generate vCards
     vcard_output = data_to_vcf(cleaned_data, CNTR_CODE="+353", debug=True)
     # Save to a file or print
