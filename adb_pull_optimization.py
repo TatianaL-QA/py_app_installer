@@ -60,7 +60,7 @@ def select_device(devices):
 
 def pull_files_recent(device_id, local_destination_folder):
     # Formulate the adb command to list files and their creation times on the device
-    list_command = f"adb -s {device_id} shell find /sdcard/ -type f -name '*.mp4' -exec stat -c '%Y %n' {{}} +"
+    list_command = f"adb -s {device_id} shell find /sdcard/ -type f -name '*.jpg' -exec stat -c '%Y %n' {{}} +"
 
     # Execute the adb command and capture the output
     try:

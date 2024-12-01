@@ -1,14 +1,14 @@
 import pandas as pd
 
 
-def data_extract(file_path, start_row=1, end_row=20, debug=False, columns=None):
+def data_extract(file_path, start_row=1, end_row=None, debug=False, columns=None):
     """
     Extract specific columns and rows from a CSV file, cleaning phone numbers.
 
     Args:
         file_path (str): Path to the CSV file.
         start_row (int): Starting row index (inclusive).
-        end_row (int): Ending row index (exclusive).
+        end_row (int): Ending row index (exclusive). If None, reads to the end of the file.
         debug (bool): Print debug information if True.
         columns (list[str]): List of column names to extract.
 
@@ -21,15 +21,39 @@ def data_extract(file_path, start_row=1, end_row=20, debug=False, columns=None):
     if columns is None:
         raise ValueError("You must provide a list of column names to extract.")
 
-    # Read the CSV file
-    data = pd.read_csv(file_path, skiprows=start_row - 1, nrows=end_row - start_row + 1, usecols=columns)
+    # Read the first row to normalize column names
+    all_columns = pd.read_csv(file_path, nrows=0).columns.tolist()
+    normalized_columns = {col.strip().lower(): col for col in all_columns}
+    if debug:
+        print(f"Identified column names: {all_columns}")
+        print(f"Normalized column map: {normalized_columns}")
+
+    # Match the requested columns with normalized names
+    requested_columns = []
+    for col in columns:
+        normalized_col = col.strip().lower()
+        if normalized_col in normalized_columns:
+            requested_columns.append(normalized_columns[normalized_col])
+        else:
+            raise ValueError(f"Column '{col}' not found in the dataset.")
 
     if debug:
-        print(f"Data extracted from rows {start_row} to {end_row} and columns {columns}:\n{data}")
+        print(f"Columns to be extracted: {requested_columns}")
 
-    # Clean the phone numbers
+    # Read the specified rows and requested columns
+    data = pd.read_csv(
+        file_path,
+        skiprows=range(1, start_row),  # Skip rows to start at the correct row
+        nrows=None if end_row is None else end_row - start_row,  # Read up to the end_row
+        usecols=requested_columns,  # Use the matched columns
+    )
+
+    if debug:
+        print(f"Data extracted from rows {start_row} to {end_row}:\n{data}")
+
+    # Clean the phone numbers if 'Phone' is among the columns
     if 'Phone' in data.columns:
-        data['Phone'] = data['Phone'].str.replace(r'\s+|\t|["]', '', regex=True)  # Remove tabs and whitespaces
+        data['Phone'] = data['Phone'].str.replace(r'\s+|\t|["]', '', regex=True)  # Remove tabs, whitespaces, and quotes
         if debug:
             print(f"Cleaned phone numbers:\n{data['Phone']}")
 
@@ -89,7 +113,7 @@ def data_to_vcf(dataframe, CNTR_CODE="+353", debug=False):
 # Example usage:
 if __name__ == "__main__":
     # Extract data
-    cleaned_data = data_extract("dirty_test_file.csv", start_row=1, end_row=20, debug=True, columns=["Name", "Phone"])
+    cleaned_data = data_extract("dirty_test_file.csv", start_row=5, end_row=8, debug=True, columns=["Name", "Phone"])
     # Generate vCards
     vcard_output = data_to_vcf(cleaned_data, CNTR_CODE="+353", debug=True)
     # Save to a file or print
