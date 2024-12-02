@@ -23,7 +23,8 @@ def get_release_ids(OWNER_NAME, APP_NAME, limit):
         return release_ids
     else:
         print(
-            f"Failed to retrieve release IDs from AppCenter. Status Code: {response.status_code}")
+            f"Failed to retrieve release IDs from AppCenter. Status Code: {
+            response.status_code}")
         print(f"Response Content: {response.content}")
         raise Exception("Failed to retrieve release IDs from AppCenter.")
 
@@ -32,7 +33,8 @@ def get_release_notes(OWNER_NAME, APP_NAME, release_ids):
     release_notes_dict = {}
 
     for release_id in release_ids:
-        endpoint = f"{config('API_BASE_URL')}/{OWNER_NAME}/{APP_NAME}/releases/{release_id}"
+        endpoint = f"{
+        config('API_BASE_URL')}/{OWNER_NAME}/{APP_NAME}/releases/{release_id}"
         response = make_api_request(endpoint)
         if response.status_code == 200:
             data = response.json()
@@ -55,7 +57,8 @@ def get_release_notes(OWNER_NAME, APP_NAME, release_ids):
     return release_notes_dict
 
 
-def search_releases_by_partial_notes(OWNER_NAME, APP_NAME, partial_notes, limit):
+def search_releases_by_partial_notes(
+        OWNER_NAME, APP_NAME, partial_notes, limit):
     release_ids = get_release_ids(OWNER_NAME, APP_NAME, limit=limit)
     release_notes_dict = get_release_notes(OWNER_NAME, APP_NAME, release_ids)
 
@@ -97,8 +100,12 @@ if __name__ == "__main__":
 
     for release_id, release_info in matching_releases.items():
         print(colored(f"Release ID: {release_id}", "blue"))
-        print(colored(
-            f"Version: {release_info.get('short_version')} ({release_info.get('version')})", "yellow"))
+        print(
+            colored(
+                f"Version: {
+                release_info.get('short_version')} ({
+                release_info.get('version')})",
+                "yellow"))
         print(colored(f"Size: {release_info.get('size')}", "cyan"))
 
         if isinstance(release_info["release_notes"], list):

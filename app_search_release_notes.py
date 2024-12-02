@@ -35,7 +35,8 @@ def get_release_ids(OWNER_NAME, APP_NAME, limit=LIM):
         return release_ids
     else:
         print(
-            f"Failed to retrieve release IDs from AppCenter. Status Code: {response.status_code}")
+            f"Failed to retrieve release IDs from AppCenter. Status Code: {
+            response.status_code}")
         print(f"Response Content: {response.content}")
         raise Exception("Failed to retrieve release IDs from AppCenter.")
 

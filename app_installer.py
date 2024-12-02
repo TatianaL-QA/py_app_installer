@@ -34,12 +34,17 @@ def get_latest_download_url(app_identifier='mwl'):
         raise Exception("Failed to retrieve download URL from AppCenter.")
 
 
-def download_and_store_app(app_identifier, download_url, output_folder, app_version):
+def download_and_store_app(
+        app_identifier,
+        download_url,
+        output_folder,
+        app_version):
     """Function is downloading the Android latest app using Appcenter API
      note: in case app is needed by bundle_number, other API endpoint should be used"""
     response = requests.get(download_url)
     if response.status_code == 200:
-        apk_filename = os.path.join(output_folder, f"{app_identifier}_{app_version}.apk")
+        apk_filename = os.path.join(
+            output_folder, f"{app_identifier}_{app_version}.apk")
         with open(apk_filename, "wb") as apk_file:
             apk_file.write(response.content)
         return apk_filename
@@ -56,8 +61,12 @@ def get_app_info(package_name, app_version, release_notes):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Install app using AppCenter API.")
-    parser.add_argument("--ml", action="store_true", help="Use --ml to install ML! app, --mwl is default parameter")
+    parser = argparse.ArgumentParser(
+        description="Install app using AppCenter API.")
+    parser.add_argument(
+        "--ml",
+        action="store_true",
+        help="Use --ml to install ML! app, --mwl is default parameter")
 
     args = parser.parse_args()
 
@@ -70,13 +79,15 @@ def main():
         else:
             app_identifier = 'mwl'
 
-        download_url, package_name, app_version, release_notes = get_latest_download_url(app_identifier)
+        download_url, package_name, app_version, release_notes = get_latest_download_url(
+            app_identifier)
         app_info = get_app_info(package_name, app_version, release_notes)
         print(f"{app_info}\n")
         output_folder = os.path.join(os.getcwd(), "downloads")
         os.makedirs(output_folder, exist_ok=True)
 
-        apk_path = download_and_store_app(app_identifier, download_url, output_folder, app_version)
+        apk_path = download_and_store_app(
+            app_identifier, download_url, output_folder, app_version)
         connected_devices = get_connected_adb_devices()
 
         for device_id in connected_devices:

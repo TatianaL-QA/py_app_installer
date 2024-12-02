@@ -6,7 +6,8 @@ ADB_PATH = "adb"
 def get_connected_adb_devices():
     devices = subprocess.check_output(
         [ADB_PATH, "devices"]).decode().split("\n")[1:-1]
-    connected_devices = [device.split("\t")[0].strip() for device in devices if device.strip()]
+    connected_devices = [device.split("\t")[0].strip()
+                         for device in devices if device.strip()]
     return connected_devices
 
 

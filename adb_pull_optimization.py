@@ -59,7 +59,8 @@ def select_device(devices):
 
 
 def pull_files_recent(device_id, local_destination_folder):
-    # Formulate the adb command to list files and their creation times on the device
+    # Formulate the adb command to list files and their creation times on the
+    # device
     list_command = f"adb -s {device_id} shell find /sdcard/ -type f -name '*.jpg' -exec stat -c '%Y %n' {{}} +"
 
     # Execute the adb command and capture the output
@@ -84,7 +85,8 @@ def pull_files_recent(device_id, local_destination_folder):
     # Get the current time
     current_time = datetime.utcnow()
 
-    # Loop through the list of files and pull files created within the last 24 hours
+    # Loop through the list of files and pull files created within the last 24
+    # hours
     for file_info in file_list_info:
         # Split the file_info into creation time and file path
         creation_time_str, file_path = file_info.split(' ', 1)
@@ -100,7 +102,8 @@ def pull_files_recent(device_id, local_destination_folder):
             pull_command = f'adb -s {device_id} pull "{file_path}" "{local_pull_path}"'
             subprocess.run(pull_command, shell=True)
             print(
-                f"File '{os.path.basename(file_path)}' pulled to '{local_pull_path}'")
+                f"File '{
+                os.path.basename(file_path)}' pulled to '{local_pull_path}'")
 
 
 if __name__ == "__main__":

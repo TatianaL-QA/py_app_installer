@@ -1,12 +1,11 @@
 import pandas as pd
 
+# Configuration variables
+PHONE_CL = "Phone"  # Provide the name of the column with phone numbers here
+CNTR_CODE = "+353"  # Country code for phone numbers
 
-def data_extract(
-        file_path,
-        start_row=1,
-        end_row=None,
-        debug=False,
-        columns=None):
+
+def data_extract(file_path, start_row=1, end_row=None, debug=False, columns=None):
     """
     Extract specific columns and rows from a CSV file, cleaning phone numbers.
 
@@ -49,52 +48,53 @@ def data_extract(
     data = pd.read_csv(
         file_path,
         skiprows=range(1, start_row),  # Skip rows to start at the correct row
-        nrows=None if end_row is None else end_row -
-                                           start_row,  # Read up to the end_row
+        nrows=None if end_row is None else end_row - start_row,  # Read up to the end_row
         usecols=requested_columns,  # Use the matched columns
     )
 
     if debug:
         print(f"Data extracted from rows {start_row} to {end_row}:\n{data}")
 
-    # Clean the phone numbers if 'Phone' is among the columns
-    if 'Phone' in data.columns:
-        data['Phone'] = data['Phone'].str.replace(
-            r'\s+|\t|["]', '', regex=True)  # Remove tabs, whitespaces, and quotes
+    # Clean the phone numbers if the phone column is among the columns
+    if PHONE_CL in data.columns:
+        data[PHONE_CL] = data[PHONE_CL].str.replace(r'\s+|\t|["]', '',
+                                                    regex=True)  # Remove tabs, whitespaces, and quotes
         if debug:
-            print(f"Cleaned phone numbers:\n{data['Phone']}")
+            print(f"Cleaned phone numbers:\n{data[PHONE_CL]}")
 
     return data
 
 
-def data_to_vcf(dataframe, CNTR_CODE="+353", debug=False):
+def data_to_vcf(dataframe, output="contacts{number_of_rows}.vcs", debug=False):
     """
-    Convert the cleaned DataFrame to vCard format.
+    Convert a DataFrame of contact data into vCard format and save to a file.
 
     Args:
-        dataframe (pd.DataFrame): Cleaned DataFrame with Name and Phone columns.
-        CNTR_CODE (str): Country code to prefix the phone number.
+        dataframe (pd.DataFrame): The DataFrame containing contact data.
+        output (str): The filename format for saving the vCard file. Use {number_of_rows}
+                      to dynamically include the number of rows.
         debug (bool): Print debug information if True.
 
     Returns:
-        str: vCard formatted string for all contacts.
+        None
     """
-    if debug:
-        print("Starting vCard creation...")
+    if dataframe.empty:
+        print("No contacts to process. The DataFrame is empty.")
+        return
 
-    vcards = []
-
+    vcf_content = ""
     for _, row in dataframe.iterrows():
-        name = row.get('Name', 'Unknown')
-        phone = row.get('Phone', '')
+        name = row.get("Name", "Unknown")  # Use "Unknown" if Name is missing
+        phone = row.get(PHONE_CL, None)
 
-        # Process the phone number
-        if phone.startswith("0"):
-            phone = phone[1:]  # Remove leading zero
-        phone = phone.replace("-", "").lstrip("0")  # Remove hyphens, left 0
-        phone = f"{CNTR_CODE}{phone}"  # Add country code
+        # Skip entries without valid phone numbers
+        if not phone:
+            continue
 
-        # Construct the vCard
+        # Format the phone number for vCard
+        phone = CNTR_CODE + phone.lstrip('0').replace("-", "")
+
+        # Construct the vCard format
         vcard = (
             "BEGIN:VCARD\n"
             "VERSION:3.0\n"
@@ -102,34 +102,24 @@ def data_to_vcf(dataframe, CNTR_CODE="+353", debug=False):
             f"TEL;TYPE=CELL:{phone}\n"
             "END:VCARD\n"
         )
-        vcards.append(vcard)
+        vcf_content += vcard + "\n"
 
         if debug:
-            print(f"Created vCard for {name}:\n{vcard}")
+            print(f"Generated vCard for {name}:\n{vcard}")
 
-    # Combine all vCards into a single string
-    vcard_result = "\n".join(vcards)
+    # Calculate the number of contacts processed
+    number_of_rows = len(dataframe)
+
+    # Format the output filename
+    output_filename = output.format(number_of_rows=number_of_rows)
+
+    # Save the vCard content to the file
+    with open(output_filename, "w", encoding="utf-8") as file:
+        file.write(vcf_content)
 
     if debug:
-        print("All vCards created successfully.")
-        print(vcard_result)
-
-    return vcard_result
+        print(f"Saved vCard file to {output_filename}")
 
 
-# Example usage:
-if __name__ == "__main__":
-    # Extract data
-    cleaned_data = data_extract(
-        "dirty_test_file.csv",
-        start_row=5,
-        end_row=8,
-        debug=True,
-        columns=[
-            "Name",
-            "Phone"])
-    # Generate vCards
-    vcard_output = data_to_vcf(cleaned_data, CNTR_CODE="+353", debug=True)
-    # Save to a file or print
-    with open("contacts.vcf", "w") as file:
-        file.write(vcard_output)
+cleaned_data = data_extract("dirty_test_file.csv", start_row=3, end_row=11, debug=True, columns=["Name", PHONE_CL])
+data_to_vcf(cleaned_data, output="IrelandContacts_{number_of_rows}.vcf", debug=True)
