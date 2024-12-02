@@ -57,8 +57,7 @@ def data_extract(file_path, start_row=1, end_row=None, debug=False, columns=None
 
     # Clean the phone numbers if the phone column is among the columns
     if PHONE_CL in data.columns:
-        data[PHONE_CL] = data[PHONE_CL].str.replace(r'\s+|\t|["]', '',
-                                                    regex=True)  # Remove tabs, whitespaces, and quotes
+        data[PHONE_CL] = data[PHONE_CL].str.replace(r'\s+|\t|["]', '', regex=True)
         if debug:
             print(f"Cleaned phone numbers:\n{data[PHONE_CL]}")
 
