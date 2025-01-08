@@ -15,12 +15,14 @@ def data_extract(file_path, start_row=1, end_row=None, debug=False, columns=None
     if columns is None:
         raise ValueError("You must provide a list of column names to extract.")
 
+    # Read the first row to normalize column names
     all_columns = pd.read_csv(file_path, nrows=0).columns.tolist()
     normalized_columns = {col.strip().lower(): col for col in all_columns}
     if debug:
         print(f"Identified column names: {all_columns}")
         print(f"Normalized column map: {normalized_columns}")
 
+    # Match the requested columns with normalized names
     requested_columns = []
     for col in columns:
         normalized_col = col.strip().lower()
@@ -32,6 +34,7 @@ def data_extract(file_path, start_row=1, end_row=None, debug=False, columns=None
     if debug:
         print(f"Columns to be extracted: {requested_columns}")
 
+    # Read the specified rows and requested columns
     data = pd.read_csv(
         file_path,
         skiprows=range(1, start_row),  # Skip rows to start at the correct row
@@ -45,18 +48,32 @@ def data_extract(file_path, start_row=1, end_row=None, debug=False, columns=None
     return data
 
 
-def clean_dob(dob):
-    dob = dob.replace(r'\s+|\t|["-]', '', regex=True)  # Remove non-digits and separators
-    parts = dob.split("-")
-    return parts[1] + parts[2] + parts[0]  # Rearrange to mmddyyyy
+def clean_dob(dob, debug=False):
+    dob = dob.replace("-", "")  # Remove dashes
+    year = dob[:4]
+    month = dob[4:6]
+    day = dob[6:8]
+
+    if debug:
+        print(f"Original DOB: {dob}")
+        print(f"Year: {year}, Month: {month}, Day: {day}")
+
+    return month + day + year  # Rearrange to mmddyyyy
 
 
-def clean_phone(phone):
-    phone = phone.replace(r'\s+|\t|["-]', '', regex=True)
+def clean_phone(phone, debug=False):
+
     phone = "".join(filter(str.isdigit, phone))  # Retain only digits
     if phone.startswith("0"):
         phone = phone[1:]
-    return f"{CNTR_CODE}{phone}"
+
+    formatted_phone = f"{CNTR_CODE}{phone}"
+
+    if debug:
+        print(f"Original Phone: {phone}")
+        print(f"Formatted Phone: {formatted_phone}")
+
+    return formatted_phone
 
 
 def generate_ids(dataframe, debug=False):
@@ -72,8 +89,8 @@ def generate_ids(dataframe, debug=False):
 
         if not pd.isna(dob) and not pd.isna(phone):
             # Clean and format DOB and Phone
-            clean_dob_value = clean_dob(dob)
-            clean_phone_value = clean_phone(phone)
+            clean_dob_value = clean_dob(dob, debug=debug)
+            clean_phone_value = clean_phone(phone, debug=debug)
 
             # Create the ID by concatenating cleaned DOB and Phone
             id_value = f"{clean_dob_value}{clean_phone_value}"
@@ -95,8 +112,11 @@ def save_ids_to_file(ids, filename="output.txt", debug=False):
         print(f"Saved IDs to {filename}")
 
 
+# Extract data from the CSV
 cleaned_data = data_extract(DATAFILE, start_row=3, end_row=11, debug=True, columns=[COL1, COL2])
 
-ids = generate_ids(cleaned_data, debug=False)
+# Generate IDs from the cleaned data
+ids = generate_ids(cleaned_data, debug=True)
 
+# Save the generated IDs to a file
 save_ids_to_file(ids, filename="output.txt", debug=True)
