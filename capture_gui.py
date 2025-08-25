@@ -7,8 +7,12 @@ import os
 import android_capture
 import ios_capture  # stub file, same API as android_capture for now
 
+
+# TODO add UI to clear the LOG window
+# TODO add START button inactive when recording started and STOP button inactive when not started
+
 # === Configuration ===
-DEST_FOLDER = os.getenv("CAPTURE_DEST", r"E:\captures")  # Windows default
+DEST_FOLDER = os.getenv("CAPTURE_DEST", r"D:\captures")  # Windows default
 os.makedirs(DEST_FOLDER, exist_ok=True)
 
 
